@@ -1,4 +1,4 @@
-package com.example.examplemod;
+package tfar.blinkdrive;
 
 import net.fabricmc.api.ModInitializer;
 

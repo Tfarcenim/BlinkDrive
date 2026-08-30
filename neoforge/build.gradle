@@ -54,6 +54,15 @@ dependencies {
         implementation "me.shedaniel.cloth:cloth-config-neoforge:$cloth_config_version"
         implementation "dev.architectury:architectury-neoforge:$architectury_version"
     }
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    implementation "maven.modrinth:oWaK0Q19:44pLdPGg"//aeronautics
+
+    implementation("dev.ryanhcode.sable:sable-neoforge-${project.minecraft_version}:${project.sable_version}") {
+            }
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }

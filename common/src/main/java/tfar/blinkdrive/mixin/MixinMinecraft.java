@@ -1,6 +1,6 @@
-package com.example.examplemod.mixin;
+package tfar.blinkdrive.mixin;
 
-import com.example.examplemod.Constants;
+import tfar.blinkdrive.Constants;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
