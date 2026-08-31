@@ -1,5 +1,6 @@
 package tfar.blinkdrive;
 
+import net.minecraft.resources.ResourceLocation;
 import tfar.blinkdrive.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
@@ -15,5 +16,9 @@ public class CommonClass {
     // code that gets invoked by the entry point of the loader specific projects.
     public static void init() {
 
+    }
+
+    public static ResourceLocation id(String s) {
+        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, s);
     }
 }
