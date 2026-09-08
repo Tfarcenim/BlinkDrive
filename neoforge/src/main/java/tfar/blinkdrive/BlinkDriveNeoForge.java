@@ -16,7 +16,9 @@ public class BlinkDriveNeoForge {
 
         // Use NeoForge to bootstrap the Common mod.
         eventBus.addListener(this::register);
-        CommonClass.init();
+        eventBus.addListener(Datagen::gather);
+        eventBus.addListener(PacketHandlerNeoForge::register);
+        BlinkDrive.init();
     }
 
     void register(RegisterEvent event) {

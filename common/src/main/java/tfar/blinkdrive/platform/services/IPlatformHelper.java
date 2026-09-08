@@ -1,5 +1,15 @@
 package tfar.blinkdrive.platform.services;
 
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
+import tfar.blinkdrive.network.client.S2CModPacket;
+import tfar.blinkdrive.network.server.C2SBlinkPacket;
+import tfar.blinkdrive.network.server.C2SModPacket;
+
+import java.util.Collection;
+
 public interface IPlatformHelper {
 
     /**
@@ -33,4 +43,19 @@ public interface IPlatformHelper {
 
         return isDevelopmentEnvironment() ? "development" : "production";
     }
+
+    <MSG extends S2CModPacket> void registerClientPacket(CustomPacketPayload.Type<MSG> type, StreamCodec<RegistryFriendlyByteBuf,MSG> streamCodec);
+    <MSG extends C2SModPacket> void registerServerPacket(CustomPacketPayload.Type<MSG> type, StreamCodec<RegistryFriendlyByteBuf,MSG> streamCodec);
+
+    void sendToClient(S2CModPacket msg, ServerPlayer player);
+
+    default void sendToClients(S2CModPacket msg, Collection<ServerPlayer> players) {
+        for (ServerPlayer player : players) {
+            sendToClient(msg, player);
+        }
+    }
+
+    void sendToServer(C2SModPacket msg);
+
+    void handle(C2SBlinkPacket c2SBlinkPacket);
 }

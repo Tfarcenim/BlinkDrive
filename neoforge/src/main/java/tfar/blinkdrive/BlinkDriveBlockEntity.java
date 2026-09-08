@@ -24,7 +24,7 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
     @Nullable
     private Component name;
 
-    private DriveHandler itemStackHandler =  new DriveHandler(1);
+    private DriveHandler itemStackHandler =  new DriveHandler(9);
 
     public static class DriveHandler extends ItemStackHandler {
         public DriveHandler(int size) {super(size);}
