@@ -1,10 +1,16 @@
 package tfar.blinkdrive.platform;
 
+import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.sublevel.SubLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.joml.Vector3f;
+import tfar.blinkdrive.BlinkDriveBlockEntity;
+import tfar.blinkdrive.BlinkDriveMenu;
 import tfar.blinkdrive.PacketHandlerNeoForge;
 import tfar.blinkdrive.network.client.S2CModPacket;
 import tfar.blinkdrive.network.server.C2SBlinkPacket;
@@ -55,7 +61,9 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void handle(C2SBlinkPacket c2SBlinkPacket) {
-
+    public void handle(ServerPlayer player, C2SBlinkPacket c2SBlinkPacket) {
+        if (player.containerMenu instanceof BlinkDriveMenu blinkDriveMenu) {
+            blinkDriveMenu.blink(c2SBlinkPacket.pos());
+        }
     }
 }

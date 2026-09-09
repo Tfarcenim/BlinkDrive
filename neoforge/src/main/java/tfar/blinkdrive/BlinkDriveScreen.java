@@ -7,6 +7,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import org.joml.Vector3f;
+import tfar.blinkdrive.network.server.C2SBlinkPacket;
+import tfar.blinkdrive.platform.Services;
 
 public class BlinkDriveScreen extends AbstractContainerScreen<BlinkDriveMenu> {
 
@@ -36,7 +39,7 @@ public class BlinkDriveScreen extends AbstractContainerScreen<BlinkDriveMenu> {
         float x = Float.parseFloat(xCoordinate.getValue());
         float y = Float.parseFloat(yCoordinate.getValue());
         float z = Float.parseFloat(zCoordinate.getValue());
-        
+        Services.PLATFORM.sendToServer(new C2SBlinkPacket(new Vector3f(x,y,z)));
     }
 
     @Override

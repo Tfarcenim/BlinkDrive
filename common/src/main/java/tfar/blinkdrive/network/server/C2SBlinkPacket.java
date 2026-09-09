@@ -10,11 +10,10 @@ import org.joml.Vector3f;
 import tfar.blinkdrive.BlinkDrive;
 import tfar.blinkdrive.platform.Services;
 
-public record C2SBlinkPacket(BlockPos blockEntityPos,Vector3f pos) implements C2SModPacket{
+public record C2SBlinkPacket(Vector3f pos) implements C2SModPacket{
 
     public static final StreamCodec<RegistryFriendlyByteBuf, C2SBlinkPacket> STREAM_CODEC =
             StreamCodec.composite(
-                    BlockPos.STREAM_CODEC,C2SBlinkPacket::blockEntityPos,
                     ByteBufCodecs.VECTOR3F,C2SBlinkPacket::pos,
                     C2SBlinkPacket::new);
 
@@ -22,7 +21,7 @@ public record C2SBlinkPacket(BlockPos blockEntityPos,Vector3f pos) implements C2
 
     @Override
     public void handleServer(ServerPlayer player) {
-        Services.PLATFORM.handle(this);
+        Services.PLATFORM.handle(player,this);
     }
 
     @Override

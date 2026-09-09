@@ -57,5 +57,5 @@ public interface IPlatformHelper {
 
     void sendToServer(C2SModPacket msg);
 
-    void handle(C2SBlinkPacket c2SBlinkPacket);
+    void handle(ServerPlayer player, C2SBlinkPacket c2SBlinkPacket);
 }
