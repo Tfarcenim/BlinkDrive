@@ -1,5 +1,11 @@
 package tfar.blinkdrive;
 
+import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.api.physics.PhysicsPipeline;
+import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
+import dev.ryanhcode.sable.companion.math.BoundingBox3ic;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -8,30 +14,111 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.LockCode;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaterniond;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
     @Nullable
     private Component name;
+    private Vector3f destination =  new Vector3f();
+    private int requiredPearls = 0;
 
-    private DriveHandler itemStackHandler =  new DriveHandler(9);
+    private DriveHandler itemStackHandler =  new DriveHandler(9) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            super.onContentsChanged(slot);
+            setChanged();
+        }
+    };
+
+    public void tryBlink() {
+        if (requiredPearls <=0 ) { requiredPearls = calculate();}
+        final SubLevel subLevel = Sable.HELPER.getContaining(level,worldPosition);
+        if (subLevel instanceof ServerSubLevel serverSubLevel) {
+            ServerSubLevelContainer container = (ServerSubLevelContainer) ServerSubLevelContainer.getContainer(level);
+            final PhysicsPipeline pipeline = container.physicsSystem().getPipeline();
+
+
+            final Quaterniond orientation = new Quaterniond();
+
+               /* final Vec2 rotation = angle != null ? angle.getRotation(ctx.getSource()) : null;
+                if (angle != null) {
+                    orientation.rotateY(-Math.toRadians(rotation.y));
+                    orientation.rotateX(Math.toRadians(rotation.x));
+                }*/
+
+
+            if (consumePearls()){
+                pipeline.teleport(serverSubLevel, new Vector3d(destination), subLevel.logicalPose().orientation());
+                requiredPearls = 0;
+            }
+        }
+    }
+
+    boolean consumePearls() {
+        int remainder = requiredPearls;
+        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+            ItemStack stack = itemStackHandler.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                int remove = Math.min(stack.getCount(), remainder);
+                stack.shrink(remove);
+                remainder -= remove;
+            }
+        }
+        return remainder == 0;
+    }
+
+    public int getRequiredPearls() {
+        return requiredPearls;
+    }
+
+    public void setDestination(Vector3f destination) {
+        this.destination = destination;
+        requiredPearls = calculate();
+    }
+
+    //The Blink Drive functions as a vehicle teleporter.
+    // Interacting with the Blink Drive opens a GUI where players can input coordinates and dump enderpearls into a small inventory.
+    // A Redstone signal will activate the Blink Drive and teleport the contraption/vehicle to the input coordinates.
+    // It will consume enderpearls from the mentioned inventory within the Blink Drive.
+    // The amount of enderpearls consumed should scale with contraption size; Every 100 blocks requires 1 enderpearl.
+    // So a 1,000 block contraption will consume 10 pearls when using the Blink drive.
+    // If there are not enough enderpearls in the Blink Drive to teleport then the contraption won't move, but it will still consume the enderpearls.
+
+    public int calculate() {
+        final SubLevel subLevel = Sable.HELPER.getContaining(level,worldPosition);
+        if (subLevel instanceof ServerSubLevel serverSubLevel) {
+            BoundingBox3ic boundingBox = serverSubLevel.getPlot().getBoundingBox();
+            int volume = boundingBox.volume();
+            return (int) Math.ceil(volume/100f);
+        }
+        return 1;
+    }
 
     public static class DriveHandler extends ItemStackHandler {
         public DriveHandler(int size) {super(size);}
 
         public NonNullList<ItemStack> getStacks() {
             return stacks;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return stack.is(Items.ENDER_PEARL);
         }
     }
 
@@ -59,7 +146,7 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new BlinkDriveMenu(containerId,playerInventory,itemStackHandler, ContainerLevelAccess.create(level,worldPosition));
+        return new BlinkDriveMenu(containerId,playerInventory,itemStackHandler, ContainerLevelAccess.create(level,worldPosition), DataSlot.standalone());
     }
 
     @Override
@@ -69,6 +156,12 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
         if (tag.contains("CustomName", 8)) {
             this.name = parseCustomNameSafe(tag.getString("CustomName"), registries);
         }
+
+        CompoundTag destinationTag = tag.getCompound("destination");
+
+        destination = new Vector3f(destinationTag.getFloat("x"), destinationTag.getFloat("y"), destinationTag.getFloat("z"));
+
+        requiredPearls = calculate();
     }
 
     @Override
@@ -76,6 +169,12 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
         super.saveAdditional(tag, registries);
         ContainerHelper.saveAllItems(tag, itemStackHandler.getStacks(), registries);
 
+        CompoundTag compoundTag = new CompoundTag();
+
+        compoundTag.putFloat("x", destination.x);
+        compoundTag.putFloat("y", destination.y);
+        compoundTag.putFloat("z", destination.z);
+        tag.put("destination", compoundTag);
 
         if (this.name != null) {
             tag.putString("CustomName", Component.Serializer.toJson(this.name, registries));

@@ -31,43 +31,45 @@ public class BlinkDriveScreen extends AbstractContainerScreen<BlinkDriveMenu> {
         zCoordinate = subInit(BlinkDriveMenu.Coordinate.Z);
 
         addRenderableWidget(Button.builder(Component.literal("Blink"),button -> {
-            tryBlink();
+            tryBlink(true);
         }).bounds(leftPos+8,topPos+20,32,16).build());
     }
 
-    void tryBlink() {
-        float x = Float.parseFloat(xCoordinate.getValue());
-        float y = Float.parseFloat(yCoordinate.getValue());
-        float z = Float.parseFloat(zCoordinate.getValue());
-        Services.PLATFORM.sendToServer(new C2SBlinkPacket(new Vector3f(x,y,z)));
+    void tryBlink(boolean blink) {
+        if (zCoordinate != null) {
+            try {
+                float x = Float.parseFloat(xCoordinate.getValue());
+                float y = Float.parseFloat(yCoordinate.getValue());
+                float z = Float.parseFloat(zCoordinate.getValue());
+                Services.PLATFORM.sendToServer(new C2SBlinkPacket(new Vector3f(x, y, z), blink));
+            } catch (NumberFormatException e) {
+
+            }
+        }
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-
-        xCoordinate.render(guiGraphics, mouseX, mouseY, partialTick);
-        yCoordinate.render(guiGraphics, mouseX, mouseY, partialTick);
-        zCoordinate.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     protected EditBox subInit(BlinkDriveMenu.Coordinate coordinate) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         int ordinal = coordinate.ordinal();
-        EditBox editBox= new EditBox(this.font, i + 55, j + 15 + ordinal * 12, 103, 12, Component.translatable("container.repair"));
-        editBox.setCanLoseFocus(false);
+        EditBox editBox= new EditBox(this.font, i + 84, j + 15 + ordinal * 12, 64, 12, Component.translatable("container.repair"));
         editBox.setTextColor(-1);
         editBox.setTextColorUneditable(-1);
         //editBox.setBordered(false);
         editBox.setMaxLength(9);
         editBox.setResponder(s -> onCoordinateChange(coordinate,s));
         editBox.setValue("0");
-        this.addWidget(editBox);
+        this.addRenderableWidget(editBox);
         return editBox;
     }
 
     void onCoordinateChange(BlinkDriveMenu.Coordinate coordinate,String s) {
+        tryBlink(false);
     }
 
     @Override
@@ -75,5 +77,11 @@ public class BlinkDriveScreen extends AbstractContainerScreen<BlinkDriveMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         guiGraphics.blit(BACKGROUND, i, j, 0, 0, this.imageWidth, imageHeight);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
+        guiGraphics.drawString(font,"Pearls: "+menu.dataSlot.get(),5,42,0x404040,false);
     }
 }

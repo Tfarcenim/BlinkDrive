@@ -63,7 +63,11 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public void handle(ServerPlayer player, C2SBlinkPacket c2SBlinkPacket) {
         if (player.containerMenu instanceof BlinkDriveMenu blinkDriveMenu) {
-            blinkDriveMenu.blink(c2SBlinkPacket.pos());
+            if (c2SBlinkPacket.blink()) {
+                blinkDriveMenu.blink(c2SBlinkPacket.pos());
+            } else {
+                blinkDriveMenu.updateCoordinates(c2SBlinkPacket.pos());
+            }
         }
     }
 }
