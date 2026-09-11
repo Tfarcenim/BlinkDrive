@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "blinkdrive:block/blink_drive"
+    }
+  }
+}

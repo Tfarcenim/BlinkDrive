@@ -4,6 +4,7 @@ import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.api.physics.PhysicsPipeline;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.companion.math.BoundingBox3ic;
+import dev.ryanhcode.sable.companion.math.Pose3d;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
@@ -11,8 +12,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -63,7 +68,14 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
 
 
             if (consumePearls()){
-                pipeline.teleport(serverSubLevel, new Vector3d(destination), subLevel.logicalPose().orientation());
+                Pose3d pose3d = subLevel.logicalPose();
+                Vector3d position = pose3d.position();
+                level.playSound(null,position.x,position.y,position.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS,4,1);
+                for (int i = 0; i < requiredPearls * 100; i++) {
+                    ((ServerLevel)level).sendParticles(ParticleTypes.PORTAL,position.x,position.y,position.z,1,0,0,0,.5);
+                }
+
+                pipeline.teleport(serverSubLevel, new Vector3d(destination), pose3d.orientation());
                 requiredPearls = 0;
             }
         }
@@ -104,7 +116,7 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
         if (subLevel instanceof ServerSubLevel serverSubLevel) {
             BoundingBox3ic boundingBox = serverSubLevel.getPlot().getBoundingBox();
             int volume = boundingBox.volume();
-            return (int) Math.ceil(volume/100f);
+            return Math.min(144,(int) Math.ceil(volume/100f));
         }
         return 1;
     }
@@ -144,9 +156,21 @@ public class BlinkDriveBlockEntity extends BlockEntity implements MenuProvider {
         return getBlockState().getBlock().getName();
     }
 
+    protected DataSlot dataSlot = new DataSlot() {
+        @Override
+        public int get() {
+            return requiredPearls;
+        }
+
+        @Override
+        public void set(int value) {
+            requiredPearls =  value;
+        }
+    };
+
     @Override
     public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new BlinkDriveMenu(containerId,playerInventory,itemStackHandler, ContainerLevelAccess.create(level,worldPosition), DataSlot.standalone());
+        return new BlinkDriveMenu(containerId,playerInventory,itemStackHandler, ContainerLevelAccess.create(level,worldPosition), dataSlot);
     }
 
     @Override

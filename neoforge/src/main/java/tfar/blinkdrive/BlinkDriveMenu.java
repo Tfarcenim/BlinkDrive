@@ -55,27 +55,44 @@ public class BlinkDriveMenu extends AbstractContainerMenu {
             BlockEntity bte = level.getBlockEntity(pos);
             if (bte instanceof BlinkDriveBlockEntity blinkDriveBlockEntity) {
                 blinkDriveBlockEntity.setDestination(destination);
-                dataSlot.set(blinkDriveBlockEntity.getRequiredPearls());
             }
         });
     }
 
     public void blink(Vector3f destination) {
-
         access.execute((level, pos) -> {
             BlockEntity bte = level.getBlockEntity(pos);
             if (bte instanceof BlinkDriveBlockEntity blinkDriveBlockEntity) {
                 blinkDriveBlockEntity.tryBlink();
             }
         });
-
     }
 
     public enum Coordinate{X,Y,Z}
 
     @Override
-    public ItemStack quickMoveStack(Player player, int i) {
-        return ItemStack.EMPTY;
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            if (index < 1 * 9) {
+                if (!this.moveItemStackTo(itemstack1, 1 * 9, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 0, 1 * 9, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemstack;
     }
 
     @Override

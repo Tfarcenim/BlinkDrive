@@ -51,6 +51,7 @@ public class BlinkDriveScreen extends AbstractContainerScreen<BlinkDriveMenu> {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     protected EditBox subInit(BlinkDriveMenu.Coordinate coordinate) {

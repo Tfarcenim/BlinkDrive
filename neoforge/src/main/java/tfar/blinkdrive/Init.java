@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 
 public class Init {
 
-    public static final BlinkDriveBlock BLOCK = new BlinkDriveBlock(BlockBehaviour.Properties.of());
+    public static final BlinkDriveBlock BLOCK = new BlinkDriveBlock(BlockBehaviour.Properties.of().strength(1));
     public static final BlockItem ITEM = new BlockItem(BLOCK,new Item.Properties());
     public static final BlockEntityType<BlinkDriveBlockEntity> BLOCK_ENTITY_TYPE = BlockEntityType.Builder.of(BlinkDriveBlockEntity::new,BLOCK).build(null);
     public static final MenuType<BlinkDriveMenu> MENU_TYPE = new MenuType<>(BlinkDriveMenu::new, FeatureFlags.VANILLA_SET);
